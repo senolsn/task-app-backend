@@ -16,6 +16,9 @@ using Autofac.Extensions.DependencyInjection;
 using Core.Utilities.IoC;
 using Core.DependencyResolvers;
 using Core.Extensions;
+using DataAccess.Contexts;
+using Microsoft.EntityFrameworkCore;
+using WebAPI.Data;
 
 
 namespace WebAPI
@@ -63,7 +66,7 @@ namespace WebAPI
             {
                 options.AddPolicy("AllowSpecificOrigin",
                     builder => builder
-                        .WithOrigins("http://localhost:4200") // Angular uygulamanýzýn URL'i
+                        .WithOrigins("http://localhost:4200")
                         .AllowAnyMethod()
                         .AllowAnyHeader());
             });
@@ -77,6 +80,13 @@ namespace WebAPI
 
 
             var app = builder.Build();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<BaseNArchitectureContext>();
+                db.Database.Migrate();
+                Seed.SeedData(db);
+            }
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
