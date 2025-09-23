@@ -45,21 +45,24 @@ namespace Business.Concretes
 
         public async Task<IResult> Update(UpdateUserRequest request)
         {
-            HashingHelper.CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
+            var existingUser = await _userDal.GetAsync(u => u.Id == request.Id);
+            if (existingUser == null)
+                return new ErrorResult(Messages.UserNotFound);
 
-            var user = new User() { PasswordHash = passwordHash, PasswordSalt = passwordSalt };
-
-            var mappedUser = _mapper.Map(request, user);
-
-            if (mappedUser is null)
+            if (!string.IsNullOrEmpty(request.Password))
             {
-                return new ErrorResult(Messages.Error);
+                HashingHelper.CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
+                existingUser.PasswordHash = passwordHash;
+                existingUser.PasswordSalt = passwordSalt;
             }
 
-            await _userDal.UpdateAsync(mappedUser);
+            _mapper.Map(request, existingUser);
+
+            await _userDal.UpdateAsync(existingUser);
 
             return new SuccessResult(Messages.UserUpdated);
         }
+
         public async Task<IResult> Delete(DeleteUserRequest request)
         {
             var userToDelete = await _userDal.GetAsync(u => u.Id == request.UserId);

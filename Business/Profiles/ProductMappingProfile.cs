@@ -13,6 +13,8 @@ namespace Business.Profiles
             CreateMap<UpdateProductRequest, Product>().ReverseMap();
             CreateMap<DeleteProductRequest, Product>().ReverseMap();
             CreateMap<Product, GetAllProductResponse>().ReverseMap();
+            CreateMap<Product, GetProductResponse>().ReverseMap();
+            CreateMap<ProductColor, GetProductColorResponse>().ReverseMap();
         }
     }
 }

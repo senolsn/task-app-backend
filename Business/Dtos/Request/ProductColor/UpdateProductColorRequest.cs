@@ -8,7 +8,7 @@ namespace Business.Dtos.Request.ProductColor
 {
     public class UpdateProductColorRequest
     {
-        public Guid Id { get; set; }
+        public Guid? Id { get; set; }
         public Guid ProductId { get; set; }
         public string ColorName { get; set; }
         public string ColorCode { get; set; }

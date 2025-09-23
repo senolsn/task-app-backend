@@ -84,12 +84,12 @@ namespace WebAPI.Controllers
             }
         }
 
-        [HttpGet("GetById")]
-        public async Task<IActionResult> GetAsync(Guid userId)
+        [HttpGet("GetById/{id}")]
+        public async Task<IActionResult> GetAsync(Guid id)
         {
             try
             {
-                var result = await _userService.GetAsync(userId);
+                var result = await _userService.GetAsync(id);
 
                 if (!result.IsSuccess)
                 {

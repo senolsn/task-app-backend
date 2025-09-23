@@ -28,27 +28,13 @@ namespace Business.Concretes
         public async Task<IResult> Add(CreateProductRequest request)
         {
             var entity = _mapper.Map<Product>(request);
-
-            foreach (var color in request.ProductColors)
-            {
-                entity.ProductColors.Add(new ProductColor
-                {
-                    Id = Guid.NewGuid(),
-                    ColorName = color.ColorName,
-                    ColorCode = color.ColorCode,
-                    CreatedDate = DateTime.Now
-                });
-            }
-
             await _productRepository.AddAsync(entity); 
-            await _productRepository.SaveChangesAsync();
-
             return new SuccessResult(Messages.Added);
         }
 
-        public async Task<IResult> Delete(DeleteProductRequest request)
+        public async Task<IResult> Delete(Guid id)
         {
-            var entity = await _productRepository.GetAsync(x => x.Id == request.Id);
+            var entity = await _productRepository.GetAsync(x => x.Id == id);
 
             if (entity is null)
             {
@@ -61,7 +47,7 @@ namespace Business.Concretes
 
         public async Task<IDataResult<IEnumerable<GetAllProductResponse>>> GetAllProducts()
         {
-            var data = await _productRepository.GetListAsync();
+            var data = await _productRepository.GetListAsync(x => x.DeletedDate == null);
 
             var mappedData = _mapper.Map<IEnumerable<GetAllProductResponse>>(data);
 
@@ -74,14 +60,37 @@ namespace Business.Concretes
             return new SuccessDataResult<IQueryable<GetAllProductResponse>>(data.ProjectTo<GetAllProductResponse>(_mapper.ConfigurationProvider));
         }
 
+        public async Task<IDataResult<GetProductResponse>> GetProductById(Guid id)
+        {
+            var entity = await _productRepository.GetAsync(x => x.Id == id);
+
+            if (entity is null)
+                return new ErrorDataResult<GetProductResponse>(Messages.Error);
+            
+
+            var mappedEntity = _mapper.Map<GetProductResponse>(entity);
+
+            return new SuccessDataResult<GetProductResponse>(mappedEntity);
+        }
+
         public async Task<IResult> Update(UpdateProductRequest request)
         {
-            var entity = await _productRepository.GetAsync(x => x.Id == request.Id);
+            var entity = await _productRepository.GetProductById(request.Id);
 
             if (entity is null)
             {
                 return new ErrorResult(Messages.Error);
 
+            }
+            
+            var existingColors = entity.ProductColors.ToList();
+
+            foreach (var color in existingColors)
+            {
+                if (!request.ProductColors.Any(c => c.ColorName == color.ColorName && c.ColorCode == color.ColorCode))
+                {
+                    entity.ProductColors.Remove(color);
+                }
             }
 
             _mapper.Map(request, entity);

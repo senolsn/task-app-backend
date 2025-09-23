@@ -48,10 +48,10 @@ namespace WebAPI.Controllers
             return BadRequest(result);
         }
 
-        [HttpDelete("DeleteProduct")]
-        public async Task<IActionResult> DeleteProductColor(DeleteProductRequest request)
+        [HttpDelete("DeleteProduct/{id}")]
+        public async Task<IActionResult> DeleteProductColor(Guid id)
         {
-            var result = await _productService.Delete(request);
+            var result = await _productService.Delete(id);
 
             if (result.IsSuccess)
                 return Ok(result);
@@ -74,11 +74,20 @@ namespace WebAPI.Controllers
 
             if (result.IsSuccess)
                 return Ok(result);
-            
+
             return BadRequest(result);
 
         }
 
+        [HttpGet("GetProductById/{id}")]
+        public async Task<IActionResult> GetProductById(Guid id)
+        {
+            var result = await _productService.GetProductById(id);
 
+            if (result.IsSuccess)
+                return Ok(result);
+
+            return BadRequest(result);
+        }
     }
 }
